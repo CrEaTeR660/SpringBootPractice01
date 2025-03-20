@@ -1,35 +1,56 @@
-//package com.example.springproject;
-//
-//import jakarta.validation.Valid;
-//import org.springframework.web.bind.annotation.*;
-//
-//@RestController
-//public class StudentController {
-//    //Post方法是放在RequestBody去傳遞
-//    @PostMapping("/students")
-////    @RequestMapping(value = "/students", method = RequestMethod.GET) //效果一樣都是只能使用Httpmethod Get
-//    public String create(@RequestBody @Valid  Student student) {
-//        return "執行資料庫的Create 操作";
-//    }
-//
-//    //Get方法是在路徑上
-//    @GetMapping("/students/{studentId}")
-//    public String read(@PathVariable Integer studentId) {
-//        return "執行資料庫的Read 操作";
-//    }
-//
-//    //Put方法是在url 去對哪個學生做更新，也要在request body去傳遞
-//    @PutMapping("/students/{studentId}")
-//    public String update(@PathVariable Integer studentId,
-//                         @RequestBody Student student,
-//                         @RequestHeader String info) {
-//        return "執行資料庫的Update 操作";
-//    }
-//    //對哪個學生做刪除，只能放在url做傳遞，跟Get一樣
-//    @DeleteMapping("/student/{studentId}")
-//    public String delete(@PathVariable Integer studentId) {
-//        return "執行資料庫刪除的操作";
-//    }
-//
-//
-//}
+package com.example.springproject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+public class StudentController {
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @PostMapping("/student")
+    public String insert(@RequestBody Student student) {
+        //可以根據前端傳來的參數新增這筆數據
+        studentRepository.save(student); //新增一筆新的資料到資料庫
+        //save方法有新增跟更新
+        return "執行資料庫的create操作";
+    }
+
+    @PutMapping("/student/{studentId}")
+    public String update(@PathVariable Integer studentId,
+                         @RequestBody Student student) {
+        //先去查資料庫裡的值
+        Student s = studentRepository.findById(studentId).orElse(null);
+
+        if (s != null) {
+            s.setName(student.getName());//再去修改name的值
+            studentRepository.save(s);
+
+            return "執行資料庫Update的操作";
+
+        } else {
+            return "update 失敗，數據不存在";
+        }
+//        student.setId(studentId); //設定student Object裡的值，去檢查這個值存在嗎
+//        studentRepository.save(student);//已經存在的話化去修改，沒存在會去新增
+        //所以一定要先檢查這筆數據是否存在
+
+    }
+
+    @DeleteMapping("/student/{studentId}")
+    public String delete(@PathVariable Integer studentId) {
+
+        studentRepository.deleteById(studentId);
+        return "執行資料庫delete的操作";
+    }
+
+    @GetMapping("/student/{studentId}")
+    public Student read(@PathVariable Integer studentId) {
+
+        Student student = studentRepository.findById(studentId).orElse(null);
+
+        return student;
+    }
+}
+
